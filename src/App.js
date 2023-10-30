@@ -26,7 +26,11 @@ function Board({ xIsNext, squares, onPlay }) {
   let status;
   if (winner) {
     status = 'Winner: ' + winner;
-  } else {
+  }
+  else if (!squares.includes(null)) {
+    status = "Draw"
+  }
+  else {
     status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
 

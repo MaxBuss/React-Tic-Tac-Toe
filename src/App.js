@@ -58,7 +58,6 @@ function Board({ xIsNext, squares, onPlay }) {
     return boardSquares;
   }
 
-
   return (
     <>
       <div className="status">{status}</div>
@@ -68,38 +67,53 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([{ squares: Array(9).fill(null), moveLocation: null }]);
   const [currentMove, setCurrentMove] = useState(0);
   const [ascending, setAscending] = useState(true);
   const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const currentSquares = history[currentMove].squares;
 
   function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    const nextHistory = history.slice(0, currentMove + 1);
+    const lastMove = history[currentMove];
+    const newMoveLocation = calculateMoveLocation(lastMove.squares, nextSquares);
+
+    nextHistory.push({ squares: nextSquares, moveLocation: newMoveLocation });
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+  }
+
+  function calculateMoveLocation(prevSquares, nextSquares) {
+    for (let i = 0; i < prevSquares.length; i++) {
+      if (prevSquares[i] !== nextSquares[i]) {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        return { row, col };
+      }
+    }
+    return null;
   }
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
 
-
-
-  const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
+  const moves = history.map((moveData, move) => {
+    const description = moveData.moveLocation
+      ? `Go to move #${move} (${moveData.moveLocation.row + 1}, ${moveData.moveLocation.col + 1})`
+      : move === 0
+        ? 'Go to game start'
+        : `Go to move #${move}`;
     return (
       <li key={move}>
-        {currentMove !== move ? <button onClick={() => jumpTo(move)}>{description}</button> : <h3>You are at move # {currentMove}</h3>}
+        {currentMove !== move ? (
+          <button onClick={() => jumpTo(move)}>{description}</button>
+        ) : (
+          <h3>You are at move # {move}</h3>
+        )}
       </li>
     );
   });
-
 
   return (
     <div className="game">
